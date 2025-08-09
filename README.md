@@ -2,6 +2,8 @@
 
 This is a browser-based AI-driven tabletop RPG game that uses [Ollama](https://ollama.com/) for local LLM inference.
 
+![screenshot](images/screenshot1.jpg)
+
 ## Setup Instructions
 
 Follow the steps below to get the game running locally on your machine.
