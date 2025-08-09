@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Story Forge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-main: 'Inter', sans-serif;
+            --font-theme: 'MedievalSharp', cursive;
+            --bg-parchment: #f5e8d7;
+            --container-bg: #3d231a;
+            --text-dark: #3d231a;
+            --text-light: #f5e8d7;
+            --border-gold: #c89b3c;
+            --border-gold-dark: #a87c2c;
+            --accent-red: #8c2a2a;
+            --accent-red-hover: #a33a3a;
+            --panel-bg: rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: var(--font-theme);
+            background-color: var(--bg-parchment);
+            background-image: url('https://www.transparenttextures.com/patterns/old-paper.png');
+            color: var(--text-light);
+        }
+        
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: var(--border-gold-dark); border-radius: 10px; border: 2px solid rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--border-gold); }
+
+        .rpg-container {
+            background-color: var(--container-bg);
+            border: 4px solid var(--border-gold-dark);
+            border-image: linear-gradient(to bottom, var(--border-gold), var(--border-gold-dark)) 1;
+            box-shadow: 0 0 20px rgba(0,0,0,0.7);
+        }
+
+        .rpg-header, .rpg-footer {
+            background-color: rgba(0,0,0,0.2);
+            border-color: var(--border-gold-dark);
+        }
+
+        .rpg-btn {
+            font-family: var(--font-theme);
+            background-color: #3c3c3c;
+            color: var(--text-light);
+            border: 2px outset var(--border-gold-dark);
+            border-radius: 2px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+            transition: all 0.2s;
+        }
+        .rpg-btn:hover {
+            background-color: #4c4c4c;
+            border-color: var(--border-gold);
+            color: #fff;
+        }
+        .rpg-btn:active {
+            border-style: inset;
+        }
+        .rpg-btn.rpg-btn-danger {
+            border-color: var(--accent-red);
+        }
+        .rpg-btn.rpg-btn-danger:hover {
+            border-color: var(--accent-red-hover);
+            background-color: var(--accent-red);
+        }
+        
+        .rpg-panel {
+            background-color: var(--panel-bg);
+            border-color: var(--border-gold-dark);
+        }
+
+        .rpg-panel h3, .rpg-panel h4 {
+            color: var(--border-gold);
+            text-shadow: 1px 1px #000;
+        }
+        
+        .rpg-input, .rpg-textarea {
+            font-family: var(--font-main);
+            background-color: rgba(0,0,0,0.2);
+            border: 1px solid var(--border-gold-dark);
+            color: var(--text-light);
+            border-radius: 2px;
+        }
+        .rpg-input:focus, .rpg-textarea:focus {
+            outline: none;
+            border-color: var(--border-gold);
+            box-shadow: 0 0 5px var(--border-gold);
+        }
+
+        #log-container .message-bubble {
+            font-family: var(--font-main);
+            border-radius: 5px;
+            cursor: pointer;
+            white-space: pre-wrap;
+            position: relative;
+            padding-bottom: 30px;
+        }
+        #log-container .justify-start .message-bubble {
+            background-color: rgba(245, 232, 215, 0.9);
+            color: var(--text-dark);
+        }
+        #log-container .justify-end .message-bubble {
+            background-color: rgba(216, 201, 182, 0.9);
+            color: var(--text-dark);
+        }
+        
+        .collapsible-panel {
+            transition: max-height 0.5s ease-in-out, opacity 0.3s ease-in-out, padding 0.5s ease-in-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+        .collapsible-panel.open {
+            max-height: 300px;
+            opacity: 1;
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner-sm {
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            border: 2px solid var(--border-gold-dark);
+            border-top-color: var(--text-light);
+            width: 16px;
+            height: 16px;
+            display: inline-block;
+        }
+        
+        #mic-btn.recording {
+            animation: pulse-red 1.5s infinite;
+        }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        .replay-tts-btn {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            width: 24px;
+            height: 24px;
+            background-color: rgba(0,0,0,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border: none;
+        }
+        .replay-tts-btn:hover {
+            background-color: rgba(0,0,0,0.3);
+        }
+        .replay-tts-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: var(--text-dark);
+        }
+
+        .title-left {
+            font-family: var(--font-theme);
+            font-size: 1.25rem;
+            padding-left: 1rem;
+            color: var(--border-gold);
+            text-shadow: 1px 1px #000;
+        }
+
+        .status-bar {
+            font-family: var(--font-main);
+            font-size: 0.85rem;
+            color: #ffd580;
+            margin-left: 1rem;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center h-screen">
+
+    <div class="w-full max-w-4xl h-[95vh] rounded-lg flex flex-col rpg-container">
+        <header class="p-3 border-b rpg-header rounded-t-lg flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="title-left">Story Forge</div>
+                <div id="statusMessage" class="status-bar hidden"></div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="toggle-prompt-btn" title="Edit Prompt" class="rpg-btn px-2 py-1 text-lg">📝</button>
+                <button id="toggle-summary-btn" title="Show Summary" class="rpg-btn px-2 py-1 text-lg">📜</button>
+                <button id="toggle-memo-btn" title="Toggle Memo" class="rpg-btn px-2 py-1 text-lg">📌</button>
+                <div class="w-px h-6 bg-gray-600 mx-1"></div>
+                <button id="toggle-settings-btn" title="Settings" class="rpg-btn px-2 py-1 text-lg">⚙️</button>
+                <button id="clearChatBtn" title="Clear Chat" class="rpg-btn rpg-btn-danger px-2 py-1 text-lg">🗑️</button>
+            </div>
+        </header>
+        
+        <div id="settings-panel" class="collapsible-panel rpg-panel border-b px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Session Management -->
+                <div>
+                    <h4 class="font-bold mb-2">Session</h4>
+                    <div class="flex items-center gap-2">
+                        <button id="loadFileBtn" title="Load from File" class="rpg-btn flex-1 p-2 text-sm">Load Game</button>
+                        <button id="saveLogBtn" title="Save Session" class="rpg-btn flex-1 p-2 text-sm">Save Game</button>
+                    </div>
+                </div>
+                <!-- Media / TTS -->
+                <div>
+                    <h4 class="font-bold mb-2">TTS (Browser)</h4>
+                    <div class="flex items-center gap-2">
+                        <button id="tts-toggle-btn" title="Toggle Text-to-Speech" class="rpg-btn px-2 py-1 text-lg">🔇</button>
+                        <select id="voice-select" class="flex-1 p-1 text-xs rpg-input"></select>
+                    </div>
+                </div>
+                <!-- Ollama model selector -->
+                <div>
+                    <h4 class="font-bold mb-2">Ollama Model</h4>
+                    <div class="flex items-center gap-2">
+                        <select id="model-select" class="flex-1 p-1 text-xs rpg-input"></select>
+                        <button id="refresh-models-btn" class="rpg-btn px-2 py-1 text-sm">Refresh</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="prompt-panel" class="collapsible-panel rpg-panel border-b px-4">
+            <div class="flex justify-between items-center mb-2">
+                 <h3 class="font-bold">System Prompt</h3>
+                 <span id="prompt-save-status" class="text-sm text-green-400 opacity-0 transition-opacity">Saved!</span>
+            </div>
+            <p class="text-xs text-gray-400 mb-2">This text defines the basic role of the AI (GM).</p>
+            <textarea id="system-prompt-input" class="w-full p-2 resize-y rpg-textarea" rows="4"></textarea>
+        </div>
+        
+        <div id="summary-panel" class="collapsible-panel rpg-panel border-b px-4">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="font-bold">Session Summary</h3>
+                <div id="dialogue-counter-display" class="font-mono text-sm text-gray-400">Next summary in: 0 / 5</div>
+            </div>
+            <div id="summary-content" class="max-h-[180px] overflow-y-auto space-y-3 text-sm">
+                <p id="summary-placeholder" class="text-gray-500">No summary yet.</p>
+            </div>
+        </div>
+
+        <div id="memo-panel" class="collapsible-panel rpg-panel border-b px-4">
+            <div class="flex justify-between items-center mb-2">
+                 <h3 class="font-bold flex items-center gap-2">Scratchpad</h3>
+                 <span id="memo-save-status" class="text-sm text-green-400 opacity-0 transition-opacity">Saved!</span>
+            </div>
+            <p class="text-xs text-gray-400 mb-2">Record PC status, items, NPC info, etc.</p>
+            <textarea id="memo-input" class="w-full p-2 resize-y rpg-textarea" rows="4"></textarea>
+        </div>
+
+        <main id="log-container" class="flex-1 p-4 overflow-y-auto space-y-4"></main>
+
+        <footer class="p-3 border-t rpg-footer rounded-b-lg">
+            <div class="flex items-end space-x-2">
+                <textarea id="prompt-input" class="flex-1 p-2 resize-none rpg-textarea" placeholder="Enter scenario, actions, dialogue..." rows="1"></textarea>
+                
+                <div class="flex flex-col space-y-1">
+                    <input type="text" id="dice-input" placeholder="2d6+2, 4dF..." class="p-2 w-32 rpg-input text-center">
+                    <div class="flex space-x-1">
+                        <button id="mic-btn" title="Speak" class="rpg-btn flex-1 p-2 text-xl">🎤</button>
+                        <button id="dice-roll-btn" title="Roll Dice" class="rpg-btn flex-1 p-2 text-xl">🎲</button>
+                        <button id="send-btn" class="rpg-btn flex-1 p-2 text-xl" disabled>➢</button>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+    <div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center hidden z-50 p-4">
+        <div class="rounded-lg shadow-xl p-6 w-full max-w-sm rpg-container">
+            <h3 id="confirmTitle" class="text-lg font-bold mb-4">Confirmation</h3>
+            <p id="confirmMessage" class="mt-2 text-sm font-main"></p>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button id="cancelBtn" class="rpg-btn px-4 py-2">Cancel</button>
+                <button id="confirmBtn" class="rpg-btn rpg-btn-danger px-4 py-2">Confirm</button>
+            </div>
+        </div>
+    </div>
+    <input type="file" id="fileInput" class="hidden" accept=".json,.txt,.md">
+
+    <audio id="tts-audio-player" class="hidden"></audio>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // DOM elements
+        const logContainer = document.getElementById('log-container');
+        const promptInput = document.getElementById('prompt-input');
+        const sendBtn = document.getElementById('send-btn');
+        const saveLogBtn = document.getElementById('saveLogBtn');
+        const loadFileBtn = document.getElementById('loadFileBtn');
+        const fileInput = document.getElementById('fileInput');
+        const clearChatBtn = document.getElementById('clearChatBtn');
+        const systemPromptInput = document.getElementById('system-prompt-input');
+        const memoInput = document.getElementById('memo-input');
+        const diceInput = document.getElementById('dice-input');
+        const diceRollBtn = document.getElementById('dice-roll-btn');
+        const ttsToggleBtn = document.getElementById('tts-toggle-btn');
+        const voiceSelect = document.getElementById('voice-select');
+        const micBtn = document.getElementById('mic-btn');
+        const ttsAudioPlayer = document.getElementById('tts-audio-player');
+        const statusMessage = document.getElementById('statusMessage');
+        const modelSelect = document.getElementById('model-select');
+        const refreshModelsBtn = document.getElementById('refresh-models-btn');
+        
+        // Application state variables
+        let chatHistory = [];
+        let onConfirmCallback = null;
+        let userMessageCounter = 0;
+        const SUMMARY_THRESHOLD = 5;
+        const MASTER_SUMMARY_THRESHOLD = 5;
+        const VISIBLE_DIALOGUES = 10;
+        let summaryChunks = []; 
+        let systemPromptText = `# Instructions
+
+You are an "AI Story Generation Prompt Generator" that helps users build their ideal story setting through dialogue.
+Strictly follow the procedures and rules below to proceed with the dialogue with the user.
+
+---
+
+### **Dialogue Procedure**
+
+**Step 1: Greeting and Preliminary Notes**
+Start with: "Welcome, traveler, to Story Forge! Together, we shall craft a world of adventure. Answer my questions, and a new realm will take shape."
+
+**Step 2: Main Category Selection**
+Present the following question and choices. CRITICAL: You must format this exactly as shown, with a blank line before the list and each numbered item on its own new line.
+"First, from what tapestry shall we weave our tale?
+
+1.  **Classic Fantasy (TRPG)**: From established tabletop systems.
+2.  **Worlds of Cinema**: Inspired by your favorite films.
+3.  **Realms of Gaming**: Based on a video game universe.
+4.  **Tomes of History**: Set in a specific historical era.
+5.  **Legends of Myth**: Drawn from mythology and folklore.
+6.  **Let Fate Decide**: The AI will choose a path.
+7.  **Speak a Title**: Directly name a world or game."
+
+**Step 3 to 6: (Condensed for brevity)**
+Follow a branching path based on user choice to determine GAME, BOOKS, ROLE, THEME, TONALITY, and CHARACTER. Maintain a conversational, thematic tone throughout.
+
+**Step 7: Final Prompt Output**
+Once settings are confirmed, say "Behold! The chronicle is written." and output the final prompt within <SYSTEM_PROMPT_OVERWRITE> tags.
+
+<SYSTEM_PROMPT_OVERWRITE>
+Stop being an AI model. Our interaction is imaginary. Don't disclose it, but heighten and uphold the immersion.
+GAME: 
+BOOKS: 
+ROLE:
+THEME: 
+TONALITY: 
+CHARACTER: 
+
+- Always provide 5 potential actions the CHARACTER can take. One should be unusual or risky. Show actions as a numbered list in a code block.
+- To support multi-voice TTS, prefix all spoken dialogue with the speaker's name (e.g., 'GM:', 'Guard:', 'Old Man:') followed by a colon. Narrative text should not have a prefix.
+- At Game Start: Create a character sheet, display it, and describe the starting location.
+- **Never roll dice for the player. Prompt them to roll, stating the check, DC, and dice (e.g., 1d20).**
+- **After I provide a roll, describe the outcome and then present 5 new action choices in your next response.**
+
+</SYSTEM_PROMPT_OVERWRITE>`;
+        
+        const INITIAL_MEMO_TEXT = `# Player's Log
+
+Here you can record character stats, inventory, quests, and notes on the world.
+`;
+        let tempSaveMemoText = '';
+
+        let currentSessionBaseName = null;
+        let currentSessionSequence = 0;
+        let hasGeneratedSessionName = false;
+        let promptSaveTimeout;
+        let memoSaveTimeout;
+        
+        let summaryJobQueue = [];
+        let isProcessingQueue = false;
+
+        // Ollama settings
+        const OLLAMA_BASE = 'http://localhost:11434';
+        let selectedModel = localStorage.getItem('storyforge_selected_model') || 'llama3:latest';
+        let selectedVoice = localStorage.getItem('storyforge_selected_voice') || '';
+
+        // TTS
+        let ttsEnabled = false;
+        let speakerVoiceMap = new Map(); // speaker -> voiceName
+
+        // STT
+        let recognition = null;
+        let isRecognizing = false;
+        let sttShouldBeOn = false;
+
+        function initialize() {
+            chatHistory = [];
+            chatHistory.push({ role: "user", parts: [{ text: systemPromptText }] });
+            chatHistory.push({ role: "model", parts: [{ text: "Understood. I am waiting for the player's first action." }] });
+            
+            userMessageCounter = 0;
+            summaryChunks = [];
+            summaryJobQueue = [];
+            isProcessingQueue = false;
+            
+            currentSessionBaseName = null;
+            currentSessionSequence = 0;
+            hasGeneratedSessionName = false;
+            
+            tempSaveMemoText = INITIAL_MEMO_TEXT;
+            speakerVoiceMap = new Map();
+            speakerVoiceMap.set('GM', voiceSelect.value || '');
+
+            updateAllUI(true);
+
+            promptInput.value = "begin";
+            diceInput.value = "2d6";
+            adjustTextareaHeight();
+            
+            setupTTS();
+            setupSpeechRecognition();
+            preloadModels();
+        }
+        
+        function restoreSessionState(newState) {
+            systemPromptText = newState.systemPrompt;
+            tempSaveMemoText = newState.memo || INITIAL_MEMO_TEXT;
+            summaryChunks = (newState.summaries || []).map(item => (typeof item === 'string') ? { type: 'chunk', content: item } : item);
+            userMessageCounter = newState.counter || 0;
+            chatHistory = newState.history || chatHistory;
+            hasGeneratedSessionName = true;
+            summaryJobQueue = []; 
+            isProcessingQueue = false;
+
+            if (newState.version >= 4) {
+                diceInput.value = newState.diceInput || '2d6';
+                promptInput.value = newState.promptInput || '';
+                setTtsEnabled(newState.ttsEnabled || false);
+                voiceSelect.value = newState.selectedVoice || voiceSelect.value;
+                speakerVoiceMap = new Map(newState.speakerVoiceMap || [['GM', voiceSelect.value || '']]);
+                selectedModel = newState.selectedModel || selectedModel;
+                localStorage.setItem('storyforge_selected_model', selectedModel);
+            } else {
+                diceInput.value = '2d6';
+                promptInput.value = '';
+                setTtsEnabled(false);
+                speakerVoiceMap = new Map([['GM', voiceSelect.value || '']]);
+            }
+
+            updateAllUI(true);
+        }
+        
+        function updateAllUI(forceScroll = false) {
+            systemPromptInput.value = systemPromptText;
+            memoInput.value = tempSaveMemoText;
+            updateCounterUI();
+            updateSummaryPanelUI();
+            updateQueueStatusUI();
+            updateVisibleLog(forceScroll);
+            adjustTextareaHeight();
+            setLoadingState(false); 
+            // reflect selected model in UI
+            modelSelect.value = selectedModel;
+        }
+
+        async function sendMessage() {
+            ttsAudioPlayer.pause?.();
+            const promptText = promptInput.value.trim();
+            if (promptText === '' || sendBtn.disabled) return;
+            
+            if (isProcessingQueue) return;
+
+            setLoadingState(true); 
+
+            userMessageCounter++;
+            updateCounterUI();
+            chatHistory.push({ role: "user", parts: [{ text: promptText }] });
+            updateVisibleLog();
+            
+            promptInput.value = '';
+            adjustTextareaHeight();
+            
+            await callOllamaAPI();
+
+            scheduleSummarizationTasks();
+            await processQueue(); 
+            
+            setLoadingState(false); 
+        }
+
+        async function callOllamaAPI() {
+            const thinkingMessage = { role: "model", parts: [{ text: "Thinking..." }], isTemporary: true };
+            chatHistory.push(thinkingMessage);
+            updateVisibleLog();
+
+            try {
+                const apiContext = buildApiContext();
+                const ollamaMessages = apiContext.map(m => ({
+                    role: (m.role === 'model') ? 'assistant' : (m.role === 'user' ? 'user' : 'system'),
+                    content: m.parts[0].text
+                }));
+
+                const payload = {
+                    model: selectedModel,
+                    messages: ollamaMessages,
+                    stream: false
+                };
+
+                const response = await fetch(`${OLLAMA_BASE}/api/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Ollama API Error: ${response.status} ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                // Try multiple common shapes for compatibility
+                let aiResponseText = result?.message?.content || result?.choices?.[0]?.message?.content || result?.output?.[0]?.content?.[0]?.text || null;
+                if (!aiResponseText && typeof result === 'string') aiResponseText = result;
+
+                if (!aiResponseText) throw new Error('No response content from Ollama.');
+
+                aiResponseText = processResponseForTags(aiResponseText);
+
+                const thinkingIndex = chatHistory.findIndex(m => m.isTemporary);
+                if (thinkingIndex !== -1) {
+                    chatHistory[thinkingIndex] = { role: "model", parts: [{ text: aiResponseText }] };
+                    speak(aiResponseText, thinkingIndex); // use browser TTS
+                }
+
+                // detect system prompt overwrite tag
+                const systemPromptCommandRegex = /<SYSTEM_PROMPT_OVERWRITE>([\s\S]+?)<\/SYSTEM_PROMPT_OVERWRITE>/i;
+                const match = aiResponseText.match(systemPromptCommandRegex);
+                if (match && match[1]) {
+                    systemPromptText = match[1].trim();
+                    initialize();
+                    return; 
+                }
+
+            } catch (error) {
+                console.error("Ollama API call error:", error);
+                const errorMessageText = `⚠️ Could not connect to Ollama at ${OLLAMA_BASE}. Check server and model.`;
+                const thinkingIndex = chatHistory.findIndex(m => m.isTemporary);
+                if (thinkingIndex !== -1) {
+                    chatHistory[thinkingIndex] = { role: "model", parts: [{ text: errorMessageText }] };
+                } else {
+                    chatHistory.push({ role: "model", parts: [{ text: errorMessageText }] });
+                }
+                showStatusMessage(error.message, true);
+            } finally {
+                updateVisibleLog();
+                if (userMessageCounter === 1 && !hasGeneratedSessionName) {
+                    generateSessionNameInBackground();
+                }
+            }
+        }
+        
+        function scheduleSummarizationTasks() {
+            const chunkCount = summaryChunks.filter(c => c.type === 'chunk').length;
+            if (chunkCount >= MASTER_SUMMARY_THRESHOLD) {
+                summaryJobQueue.push({ type: 'meta' });
+                updateQueueStatusUI();
+            }
+            else if (userMessageCounter > 0 && userMessageCounter % SUMMARY_THRESHOLD === 0) {
+                summaryJobQueue.push({ type: 'chunk' });
+                updateQueueStatusUI();
+            }
+        }
+
+        async function processQueue() {
+            if (isProcessingQueue || summaryJobQueue.length === 0) return;
+            isProcessingQueue = true;
+            setLoadingState(true, true);
+            const job = summaryJobQueue.shift();
+            updateQueueStatusUI();
+            try {
+                if (job.type === 'chunk') await summarizeAndStore();
+                else if (job.type === 'meta') await createMasterSummary();
+            } catch (error) {
+                console.error(`Error during ${job.type} summary:`, error);
+            } finally {
+                isProcessingQueue = false;
+                setLoadingState(false);
+            }
+        }
+        
+        async function summarizeAndStore() {
+            const chunkIndex = Math.floor((userMessageCounter - 1) / SUMMARY_THRESHOLD);
+            const start = 2 + (chunkIndex * SUMMARY_THRESHOLD * 2);
+            const end = start + (SUMMARY_THRESHOLD * 2);
+            const messagesToSummarize = chatHistory.slice(start, end);
+
+            if (messagesToSummarize.length === 0) return;
+            
+            let promptForSummary = "Briefly summarize the following TRPG dialogue from a third-person perspective, including names, places, and key events.\n\n---\n";
+            messagesToSummarize.forEach(turn => {
+                promptForSummary += `${turn.role === 'user' ? 'Player' : 'GM'}: ${turn.parts[0].text}\n`;
+            });
+            promptForSummary += "\n---\nSummary:";
+
+            const summaryText = await getAiResponse(promptForSummary);
+            if (summaryText) {
+                summaryChunks.push({ type: 'chunk', content: summaryText });
+                updateSummaryPanelUI();
+            }
+        }
+
+        async function createMasterSummary() {
+            const chunksToProcess = summaryChunks.filter(c => c.type === 'chunk');
+            if (chunksToProcess.length < MASTER_SUMMARY_THRESHOLD) return;
+
+            const chunksForThisMaster = chunksToProcess.slice(0, MASTER_SUMMARY_THRESHOLD);
+            let promptForMetaSummary = "Integrate the following story summaries into a single, coherent master summary. Retain important details, character development, and plot points.\n\n---\n";
+            chunksForThisMaster.forEach((chunkObj, index) => {
+                promptForMetaSummary += `[Part ${index + 1}]:\n${chunkObj.content}\n\n`;
+            });
+            promptForMetaSummary += "---\nIntegrated Master Summary:";
+
+            const masterSummaryText = await getAiResponse(promptForMetaSummary);
+            if (masterSummaryText) {
+                const newMasterSummary = { type: 'meta', content: masterSummaryText };
+                const chunkContentsToRemove = new Set(chunksForThisMaster.map(c => c.content));
+                summaryChunks = summaryChunks.filter(s => s.type !== 'chunk' || !chunkContentsToRemove.has(s.content));
+                summaryChunks.push(newMasterSummary);
+                updateSummaryPanelUI();
+            }
+        }
+        
+        async function getAiResponse(prompt) {
+             try {
+                const ollamaMessages = [{ role: 'user', content: prompt }];
+                const payload = {
+                    model: selectedModel,
+                    messages: ollamaMessages,
+                    stream: false
+                };
+                const response = await fetch(`${OLLAMA_BASE}/api/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error('AI API Error');
+                const result = await response.json();
+                return result?.message?.content || result?.choices?.[0]?.message?.content || result?.output?.[0]?.content?.[0]?.text || null;
+            } catch (error) {
+                console.error("Failed to get AI response:", error);
+                showStatusMessage('Failed to contact Ollama for summaries.', true);
+                return null;
+            }
+        }
+
+        async function generateSessionNameInBackground() {
+            if (hasGeneratedSessionName || !systemPromptText.trim()) return;
+            hasGeneratedSessionName = true;
+            const firstUserTurn = chatHistory.find(m => m.role === 'user' && chatHistory.indexOf(m) > 0);
+            const firstModelTurn = chatHistory.find(m => m.role === 'model' && chatHistory.indexOf(m) > 1);
+            if (!firstUserTurn || !firstModelTurn) return;
+
+            const promptForName = `Based on the following TRPG session, generate a short, file-safe English filename (e.g., "haunted_mansion"). Use underscores. Max 4 words.\n\nPlayer: "${firstUserTurn.parts[0].text}"\nGM: "${firstModelTurn.parts[0].text}"\n\nFilename:`;
+            const generatedName = await getAiResponse(promptForName);
+            if (generatedName) {
+                const cleanName = generatedName.trim().replace(/\.json|\.txt/g, '').replace(/\s+/g, '_').replace(/[^\w-]/g, '');
+                if (cleanName) {
+                    currentSessionBaseName = cleanName;
+                    currentSessionSequence = 0;
+                }
+            }
+        }
+
+        function buildApiContext() {
+            const historyForApi = chatHistory.filter(m => !m.isTemporary);
+            const context = [];
+            if (historyForApi.length > 0) context.push(historyForApi[0]);
+
+            if (tempSaveMemoText.trim() && tempSaveMemoText !== INITIAL_MEMO_TEXT) {
+                context.push({ role: "user", parts: [{text: `[Reference Memo]:\n\n${tempSaveMemoText}`}] });
+                context.push({ role: "model", parts: [{text: "Understood."}] });
+            }
+
+            summaryChunks.forEach(summaryObj => {
+                context.push({ role: "user", parts: [{text: `[Summary of past events]:\n${summaryObj.content}`}] });
+                context.push({ role: "model", parts: [{text: "Understood."}] });
+            });
+            
+            const dialogueHistory = historyForApi.slice(2);
+            context.push(...dialogueHistory.slice(-(VISIBLE_DIALOGUES * 2)));
+            
+            return context;
+        }
+
+        function processResponseForTags(responseText) {
+            let processedText = responseText;
+            const memoAppendRegex = /<TEMP_MEMO_APPEND>([\s\S]+?)<\/TEMP_MEMO_APPEND>/gi;
+            let match;
+            while ((match = memoAppendRegex.exec(processedText)) !== null) {
+                const contentToAppend = match[1].trim();
+                if (!tempSaveMemoText.includes(contentToAppend)) {
+                    tempSaveMemoText += `\n\n${contentToAppend}`;
+                }
+            }
+            memoInput.value = tempSaveMemoText;
+            // remove any fenced code blocks to preserve immersion (user requested no code blocks)
+            processedText = processedText.replace(/```[\s\S]*?```/g, '').trim();
+            return processedText;
+        }
+
+        function updateVisibleLog(forceScroll = false) {
+            const wasAtBottom = logContainer.scrollHeight - logContainer.clientHeight <= logContainer.scrollTop + 1;
+            logContainer.innerHTML = '';
+            const dialogueHistory = chatHistory.slice(2);
+            const messagesToDisplay = dialogueHistory.slice(-(VISIBLE_DIALOGUES * 2));
+            if (chatHistory.length <= 2) {
+                 logContainer.innerHTML = `<div class="text-center text-sm p-2" style="color: var(--border-gold)">Press the send button to begin...</div>`;
+            } else {
+                messagesToDisplay.forEach((msg, index) => {
+                    const originalIndex = chatHistory.indexOf(msg);
+                    const isLatestMessage = index === messagesToDisplay.length - 1;
+                    const messageElement = createMessageElement(msg, originalIndex, isLatestMessage);
+                    logContainer.appendChild(messageElement);
+                });
+            }
+            if (forceScroll || wasAtBottom) {
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
+        }
+        
+        function createMessageElement(msg, historyIndex, isLatestMessage = false) {
+            const { role: sender, parts, isTemporary } = msg;
+            const text = parts[0].text;
+            
+            const wrapper = document.createElement('div');
+            wrapper.className = `flex w-full mt-2 space-x-3 ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
+            wrapper.dataset.historyIndex = historyIndex;
+
+            const bubble = document.createElement('div');
+            bubble.className = `p-3 message-bubble`;
+            
+            if (isTemporary) {
+                bubble.textContent = text;
+            } else if (sender === 'model' && isLatestMessage) {
+                const words = text.split(/(\s+)/);
+                words.forEach(word => {
+                    const span = document.createElement('span');
+                    span.textContent = word;
+                    span.style.opacity = 0;
+                    span.style.transition = 'opacity 0.5s';
+                    bubble.appendChild(span);
+                });
+                setTimeout(() => {
+                    bubble.querySelectorAll('span').forEach((span, i) => {
+                        setTimeout(() => span.style.opacity = 1, i * 50);
+                    });
+                }, 100);
+            } else {
+                bubble.textContent = text;
+            }
+            
+            wrapper.appendChild(bubble);
+            
+            if (!isTemporary && sender === 'model') {
+                const replayBtn = document.createElement('button');
+                replayBtn.className = 'replay-tts-btn hidden';
+                replayBtn.title = 'Replay audio (TTS)';
+                replayBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>`;
+                replayBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    const mapEntry = chatHistory[historyIndex]?.ttsVoice;
+                    if (mapEntry) {
+                        speak(chatHistory[historyIndex].parts[0].text, historyIndex, mapEntry);
+                    } else {
+                        speak(chatHistory[historyIndex].parts[0].text, historyIndex);
+                    }
+                };
+                bubble.appendChild(replayBtn);
+            }
+            
+            if (!isTemporary) {
+                bubble.onclick = () => enterEditMode(bubble, sender, historyIndex);
+            }
+            return wrapper;
+        }
+        
+        function updateCounterUI() {
+            const count = userMessageCounter % SUMMARY_THRESHOLD;
+            document.getElementById('dialogue-counter-display').textContent = `Next summary in: ${count} / ${SUMMARY_THRESHOLD}`;
+        }
+
+        function updateSummaryPanelUI() {
+            const summaryContent = document.getElementById('summary-content');
+            summaryContent.innerHTML = '';
+            if (summaryChunks.length === 0) {
+                summaryContent.innerHTML = '<p class="text-gray-500">No summary yet.</p>';
+            } else {
+                summaryChunks.forEach((summaryObj) => {
+                    const item = document.createElement('div');
+                    item.className = 'summary-item p-3 rounded-lg';
+                    item.style.backgroundColor = 'rgba(0,0,0,0.2)';
+                    item.innerHTML = `<h4 class="font-bold mb-1">${summaryObj.type === 'meta' ? 'Master Summary' : 'Chapter Summary'}</h4><p>${summaryObj.content.replace(/\n/g, '<br>')}</p>`;
+                    summaryContent.appendChild(item);
+                });
+            }
+        }
+
+        function updateQueueStatusUI() {
+            const queueDisplay = document.getElementById('queue-status-display');
+            if (!queueDisplay) return;
+            const queueLamp = document.getElementById('queue-lamp');
+            const queueCount = document.getElementById('queue-count');
+            const count = summaryJobQueue.length;
+            if (count > 0) {
+                queueCount.textContent = count;
+                queueLamp.classList.add('active');
+                queueDisplay.classList.remove('hidden');
+            } else {
+                queueDisplay.classList.add('hidden');
+            }
+        }
+
+        function setLoadingState(isLoading, isQueue = false) {
+            sendBtn.disabled = isLoading || isProcessingQueue;
+            promptInput.disabled = isLoading && !isQueue;
+        }
+
+        function adjustTextareaHeight() {
+            promptInput.style.height = 'auto';
+            promptInput.style.height = (promptInput.scrollHeight) + 'px';
+        }
+
+        function handleDiceRoll() {
+            const notation = diceInput.value.trim();
+            if (!notation) return;
+            const result = parseAndRollDice(notation);
+            if (!result) {
+                diceInput.style.borderColor = 'var(--accent-red)';
+                setTimeout(() => diceInput.style.borderColor = 'var(--border-gold-dark)', 500);
+                return;
+            }
+            let resultString = `[Rolled ${notation} -> ${result.total}]`;
+            promptInput.value = promptInput.value.trim() + ` ${resultString} `;
+            promptInput.focus();
+            adjustTextareaHeight();
+        }
+
+        function parseAndRollDice(notation) {
+            const standardRegex = /^(\d+)d(\d+)([\+\-]\d+)?$/i;
+            const match = notation.match(standardRegex);
+            if (!match) return null;
+            const numDice = parseInt(match[1], 10);
+            const numSides = parseInt(match[2], 10);
+            const modifier = match[3] ? parseInt(match[3], 10) : 0;
+            if (numDice <= 0 || numSides <= 0 || numDice > 100) return null;
+            let total = 0;
+            for (let i = 0; i < numDice; i++) {
+                total += Math.floor(Math.random() * numSides) + 1;
+            }
+            total += modifier;
+            return { total };
+        }
+
+        function enterEditMode(bubble, sender, historyIndex) {
+            // Keep minimal - not implemented in this cleaned version
+        }
+        
+        function handleRegenerateClick(historyIndex, sender) {
+            showConfirmModal("Regenerate Response", "This will delete all subsequent messages and regenerate the AI's response. This action cannot be undone.", () => {
+                const spliceIndex = sender === 'user' ? historyIndex + 1 : historyIndex;
+                const deletedMessages = chatHistory.slice(spliceIndex);
+                userMessageCounter -= deletedMessages.filter(msg => msg.role === 'user').length;
+                if (userMessageCounter < 0) userMessageCounter = 0;
+                chatHistory.splice(spliceIndex);
+                setLoadingState(true);
+                callOllamaAPI().then(() => {
+                    scheduleSummarizationTasks();
+                    processQueue().then(() => setLoadingState(false));
+                });
+                updateCounterUI();
+            });
+        }
+        function showConfirmModal(title, message, onConfirm) {
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+            onConfirmCallback = onConfirm;
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+        function hideConfirmModal() {
+            document.getElementById('confirmModal').classList.add('hidden');
+            onConfirmCallback = null;
+        }
+
+        function saveSession() {
+            let baseName = currentSessionBaseName || `trpg_session_${new Date().toISOString().slice(0, 10)}`;
+            currentSessionSequence++;
+            const newFileName = `${baseName}_${currentSessionSequence}.json`;
+            const sessionData = { 
+                version: 4, 
+                systemPrompt: systemPromptText, 
+                memo: tempSaveMemoText,
+                summaries: summaryChunks, 
+                counter: userMessageCounter, 
+                history: chatHistory,
+                diceInput: diceInput.value,
+                promptInput: promptInput.value,
+                ttsEnabled: ttsEnabled,
+                selectedVoice: voiceSelect.value,
+                speakerVoiceMap: Array.from(speakerVoiceMap.entries()),
+                selectedModel: selectedModel
+            };
+            const blob = new Blob([JSON.stringify(sessionData, null, 2)], { type: 'application/json;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = newFileName;
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+
+        function loadFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const parsedData = JSON.parse(e.target.result);
+                    if (parsedData && parsedData.history && parsedData.version >= 4) {
+                        showConfirmModal("Load Session", "This will overwrite the current session. Are you sure?", () => restoreSessionState(parsedData));
+                    } else { throw new Error("Invalid session file."); }
+                } catch (error) {
+                    showConfirmModal("Load as New Prompt", "This file is not a valid session. Load its content as a new system prompt instead?", () => {
+                        systemPromptText = e.target.result;
+                        initialize();
+                    });
+                }
+            };
+            reader.readAsText(file);
+            fileInput.value = '';
+        }
+
+        // --- TTS Functions (browser speechSynthesis) ---
+        function setupTTS() {
+            populateVoiceList();
+            ttsToggleBtn.textContent = ttsEnabled ? '🔊' : '🔇';
+        }
+
+        function populateVoiceList() {
+            const synth = window.speechSynthesis;
+            let voices = synth.getVoices();
+            if (voices.length === 0) {
+                // Some browsers load voices asynchronously
+                synth.onvoiceschanged = () => {
+                    voices = synth.getVoices();
+                    _populate(voices);
+                };
+            } else {
+                _populate(voices);
+            }
+            function _populate(voices) {
+                voiceSelect.innerHTML = '';
+                voices.forEach(v => {
+                    const option = document.createElement('option');
+                    option.value = v.name;
+                    option.textContent = `${v.name} ${v.lang ? ' — ' + v.lang : ''}`;
+                    voiceSelect.appendChild(option);
+                });
+                // try to restore previously selected voice
+                if (selectedVoice) {
+                    const found = [...voiceSelect.options].find(o => o.value === selectedVoice);
+                    if (found) voiceSelect.value = selectedVoice;
+                }
+            }
+        }
+
+        function setTtsEnabled(enabled) {
+            ttsEnabled = enabled;
+            ttsToggleBtn.textContent = enabled ? '🔊' : '🔇';
+            if (!enabled) window.speechSynthesis.cancel();
+            localStorage.setItem('storyforge_tts_enabled', enabled ? '1' : '0');
+        }
+
+        function speak(text, historyIndex, forcedVoiceName) {
+            if (!ttsEnabled || !text) return;
+            const utter = new SpeechSynthesisUtterance(text.replace(/```[\s\S]*?```/g, ''));
+            const voiceName = forcedVoiceName || voiceSelect.value;
+            const voices = window.speechSynthesis.getVoices();
+            const chosen = voices.find(v => v.name === voiceName) || voices[0];
+            if (chosen) utter.voice = chosen;
+            utter.rate = 1.0;
+            utter.pitch = 1.0;
+            utter.onend = () => {
+                // nothing for now
+            };
+            window.speechSynthesis.speak(utter);
+            // attach chosen voice to history for replay
+            if (chatHistory[historyIndex]) {
+                chatHistory[historyIndex].ttsVoice = chosen ? chosen.name : null;
+            }
+        }
+
+        // --- Speech-to-Text Functions ---
+        function setupSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'en-US';
+                recognition.onstart = () => { isRecognizing = true; micBtn.classList.add('recording'); };
+                recognition.onend = () => { isRecognizing = false; micBtn.classList.remove('recording'); if (sttShouldBeOn) try { recognition.start(); } catch(e){ sttShouldBeOn = false; } };
+                recognition.onerror = () => { sttShouldBeOn = false; isRecognizing = false; };
+                recognition.onresult = (event) => {
+                    let final_transcript = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) final_transcript += event.results[i][0].transcript;
+                    }
+                    if (final_transcript) {
+                        promptInput.value += ` ${final_transcript.trim()} `;
+                        promptInput.focus();
+                        adjustTextareaHeight();
+                    }
+                };
+            } else {
+                micBtn.disabled = true;
+            }
+        }
+
+        function toggleSpeechRecognition() {
+            if (!recognition) return;
+            sttShouldBeOn = !sttShouldBeOn;
+            if (sttShouldBeOn && !isRecognizing) recognition.start();
+            else if (!sttShouldBeOn && isRecognizing) recognition.stop();
+        }
+
+        // --- Model list / Ollama integration helpers ---
+        async function preloadModels() {
+            try {
+                const res = await fetch(`${OLLAMA_BASE}/api/tags`);
+                if (!res.ok) throw new Error('Failed to fetch models');
+                const data = await res.json();
+                // data might be an array of model names or objects depending on Ollama version
+                let models = [];
+                if (Array.isArray(data)) {
+                    models = data.map(m => (typeof m === 'string') ? m : (m.name || m.model || JSON.stringify(m)));
+                } else if (data.models) {
+                    models = data.models.map(m => m.name || m.model);
+                }
+                // ensure default present
+                if (!models.includes('llama3:latest')) models.unshift('llama3:latest');
+                // ensure selectedModel still present else set default
+                if (!models.includes(selectedModel)) selectedModel = 'llama3:latest';
+                modelSelect.innerHTML = '';
+                models.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m;
+                    opt.textContent = m;
+                    modelSelect.appendChild(opt);
+                });
+                modelSelect.value = selectedModel;
+                showStatusMessage(`Loaded ${models.length} models. Using: ${selectedModel}`, false);
+            } catch (error) {
+                console.warn('Could not preload models:', error);
+                // fallback minimal list
+                const fallback = ['llama3:latest', 'leodb/Mistral-Small-22B-ArliAI-RPMax-v1.1:latest'];
+                modelSelect.innerHTML = '';
+                fallback.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m;
+                    opt.textContent = m;
+                    modelSelect.appendChild(opt);
+                });
+                modelSelect.value = selectedModel;
+                showStatusMessage('Could not load models from Ollama. Using fallback list.', true);
+            }
+        }
+
+        function showStatusMessage(msg, isError = false) {
+            statusMessage.textContent = msg;
+            statusMessage.classList.toggle('hidden', false);
+            statusMessage.style.color = isError ? '#ff8a8a' : '#ffd580';
+            setTimeout(() => { statusMessage.classList.add('hidden'); }, 6000);
+        }
+
+        async function refreshModelList() {
+            await preloadModels();
+        }
+
+        
+        const togglePanel = (panelId) => {
+            const allPanels = ['settings-panel', 'prompt-panel', 'summary-panel', 'memo-panel'];
+            allPanels.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                if (id === panelId) {
+                    el.classList.toggle('open');
+                } else {
+                    el.classList.remove('open');
+                }
+            });
+        };
+
+        // --- Save/Load UI interactions ---
+        sendBtn.addEventListener('click', sendMessage);
+        promptInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+        promptInput.addEventListener('input', adjustTextareaHeight);
+        diceRollBtn.addEventListener('click', handleDiceRoll);
+        saveLogBtn.addEventListener('click', saveSession);
+        loadFileBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', loadFile);
+        clearChatBtn.addEventListener('click', () => showConfirmModal("Clear Chat", "Are you sure you want to delete all chat history, summaries, and images?", () => { initialize(); hideConfirmModal(); }));
+        
+        document.getElementById('toggle-settings-btn').addEventListener('click', () => togglePanel('settings-panel'));
+        document.getElementById('toggle-prompt-btn').addEventListener('click', () => togglePanel('prompt-panel'));
+        document.getElementById('toggle-summary-btn').addEventListener('click', () => togglePanel('summary-panel'));
+        document.getElementById('toggle-memo-btn').addEventListener('click', () => togglePanel('memo-panel'));
+
+        systemPromptInput.addEventListener('input', () => {
+            clearTimeout(promptSaveTimeout);
+            systemPromptText = systemPromptInput.value;
+            if (chatHistory.length > 0) chatHistory[0].parts[0].text = systemPromptText;
+            promptSaveTimeout = setTimeout(() => {
+                const statusEl = document.getElementById('prompt-save-status');
+                statusEl.style.opacity = '1';
+                setTimeout(() => { statusEl.style.opacity = '0'; }, 2000);
+            }, 1000);
+        });
+
+        memoInput.addEventListener('input', () => {
+            clearTimeout(memoSaveTimeout);
+            tempSaveMemoText = memoInput.value;
+            memoSaveTimeout = setTimeout(() => {
+                const statusEl = document.getElementById('memo-save-status');
+                statusEl.style.opacity = '1';
+                setTimeout(() => { statusEl.style.opacity = '0'; }, 2000);
+            }, 1000);
+        });
+
+        document.getElementById('cancelBtn').addEventListener('click', hideConfirmModal);
+        document.getElementById('confirmBtn').addEventListener('click', () => { if (onConfirmCallback) onConfirmCallback(); hideConfirmModal(); });
+        
+        ttsToggleBtn.addEventListener('click', () => { setTtsEnabled(!ttsEnabled); });
+        voiceSelect.addEventListener('change', (e) => { selectedVoice = e.target.value; localStorage.setItem('storyforge_selected_voice', selectedVoice); speakerVoiceMap.set('GM', selectedVoice); });
+        micBtn.addEventListener('click', toggleSpeechRecognition);
+        refreshModelsBtn.addEventListener('click', refreshModelList);
+        modelSelect.addEventListener('change', (e) => {
+            selectedModel = e.target.value;
+            localStorage.setItem('storyforge_selected_model', selectedModel);
+            showStatusMessage(`Using model: ${selectedModel}`, false);
+            // inform in log
+            chatHistory.push({ role: "model", parts: [{ text: `Now using model: ${selectedModel}` }] });
+            updateVisibleLog(true);
+        });
+
+        initialize();
+    });
+</script>
+
+</body>
+</html>
