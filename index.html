@@ -95,6 +95,28 @@
             box-shadow: 0 0 5px var(--border-gold);
         }
 
+        select.rpg-input {
+            appearance: none;
+            background-image: linear-gradient(to bottom, #3c3c3c, #2a2a2a);
+            padding-right: 24px;
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            background-size: 12px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c89b3c'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            cursor: pointer;
+        }
+
+        select.rpg-input:hover {
+            border-color: var(--border-gold);
+            background-image: linear-gradient(to bottom, #4c4c4c, #3a3a3a), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c89b3c'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+        }
+
+        select.rpg-input option {
+            background-color: #2a2a2a;
+            color: var(--text-light);
+            font-family: var(--font-main);
+        }
+
         #log-container .message-bubble {
             font-family: var(--font-main);
             border-radius: 5px;
@@ -205,30 +227,30 @@
             </div>
         </header>
         
-        <div id="settings-panel" class="collapsible-panel rpg-panel border-b px-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div id="settings-panel" class="collapsible-panel rpg-panel border-b px-4 py-3">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 px-4">
                 <!-- Session Management -->
-                <div>
-                    <h4 class="font-bold mb-2">Session</h4>
+                <div class="h-[80px] flex flex-col">
+                    <h4 class="font-bold h-8">Session</h4>
                     <div class="flex items-center gap-2">
                         <button id="loadFileBtn" title="Load from File" class="rpg-btn flex-1 p-2 text-sm">Load Game</button>
                         <button id="saveLogBtn" title="Save Session" class="rpg-btn flex-1 p-2 text-sm">Save Game</button>
                     </div>
                 </div>
                 <!-- Media / TTS -->
-                <div>
-                    <h4 class="font-bold mb-2">TTS (Browser)</h4>
+                <div class="h-[80px] flex flex-col">
+                    <h4 class="font-bold h-8">TTS (Browser)</h4>
                     <div class="flex items-center gap-2">
-                        <button id="tts-toggle-btn" title="Toggle Text-to-Speech" class="rpg-btn px-2 py-1 text-lg">🔇</button>
-                        <select id="voice-select" class="flex-1 p-1 text-xs rpg-input"></select>
+                        <button id="tts-toggle-btn" title="Toggle Text-to-Speech" class="rpg-btn px-2 py-1 text-lg shrink-0">🔇</button>
+                        <select id="voice-select" class="w-full p-1 text-xs rpg-input"></select>
                     </div>
                 </div>
                 <!-- Ollama model selector -->
-                <div>
-                    <h4 class="font-bold mb-2">Ollama Model</h4>
-                    <div class="flex items-center gap-2">
-                        <select id="model-select" class="flex-1 p-1 text-xs rpg-input"></select>
-                        <button id="refresh-models-btn" class="rpg-btn px-2 py-1 text-sm">Refresh</button>
+                <div class="h-[80px] flex flex-col">
+                    <h4 class="font-bold h-8">Ollama Model</h4>
+                    <div class="flex items-center gap-2 pr-2">
+                        <select id="model-select" class="w-full p-1 text-xs rpg-input"></select>
+                        <button id="refresh-models-btn" class="rpg-btn px-2 py-1 text-sm shrink-0">Refresh</button>
                     </div>
                 </div>
             </div>
