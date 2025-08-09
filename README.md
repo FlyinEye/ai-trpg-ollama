@@ -42,9 +42,7 @@ Copy
 Edit
 python3 -m http.server 8080
 4. Open the game in your browser
-Navigate to: http://localhost:8080/yourfilename.html
-
-Replace yourfilename.html with the actual HTML file name.
+Navigate to: http://localhost:8080/
 
 Notes
 Ensure Ollama is running and accessible on your machine when you launch the game.
